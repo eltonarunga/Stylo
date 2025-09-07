@@ -1,0 +1,7 @@
+{
+  "name": "Stylo",
+  "description": "An application that uses AI to transform your selfie into a professional headshot with different clothing styles.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
