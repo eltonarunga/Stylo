@@ -1,99 +1,82 @@
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { dataURLtoFile } from '../utils/imageUtils';
 
 interface CameraViewProps {
-  onPhotoTaken: (dataUrl: string) => void;
-  onCancel: () => void;
+  onPhotoTaken: (file: File) => void;
+  onClose: () => void;
 }
 
-export const CameraView: React.FC<CameraViewProps> = ({ onPhotoTaken, onCancel }) => {
+export const CameraView: React.FC<CameraViewProps> = ({ onPhotoTaken, onClose }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mediaStream: MediaStream;
-
-    const startCamera = async () => {
-      try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
-        });
+  const startCamera = useCallback(async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        setError("Could not access camera. Please check permissions.");
       }
-    };
-
-    startCamera();
-
-    return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-      }
-    };
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      setError("Could not access the camera. Please check permissions and try again.");
+    }
   }, []);
 
-  const handleTakePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const context = canvas.getContext('2d');
-    if (context) {
-      // Flip the context horizontally to correct the mirror effect
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1);
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      onPhotoTaken(dataUrl);
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
-  }, [onPhotoTaken]);
+  }, [stream]);
+  
+  useEffect(() => {
+    startCamera();
+    return () => {
+      stopCamera();
+    };
+  }, [startCamera, stopCamera]);
+
+
+  const takePicture = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        const file = dataURLtoFile(dataUrl, `photo-${Date.now()}.jpg`);
+        onPhotoTaken(file);
+      }
+      stopCamera();
+    }
+  };
 
   return (
-    <div className="w-full aspect-square bg-black rounded-lg flex flex-col items-center justify-center relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-50 p-4">
       {error ? (
-        <div className="text-center text-red-400 p-4">
-          <p className="font-bold">Camera Error</p>
-          <p>{error}</p>
-          <button onClick={onCancel} className="mt-4 px-4 py-2 bg-purple-600 rounded-lg">Go Back</button>
+        <div className="bg-white p-6 rounded-lg text-center text-red-600">
+            <p>{error}</p>
+            <button onClick={onClose} className="mt-4 px-4 py-2 bg-gray-200 rounded-md">Close</button>
         </div>
       ) : (
         <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover rounded-lg transform scale-x-[-1]"
-          />
-          <canvas ref={canvasRef} className="hidden" />
-          <div className="absolute inset-0 flex flex-col justify-between p-4">
-             <div className="flex justify-end">
-                <button
-                    onClick={onCancel}
-                    aria-label="Cancel and go back to uploader"
-                    className="w-10 h-10 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-75 transition-colors"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <video ref={videoRef} autoPlay playsInline className="w-full max-w-lg h-auto rounded-lg" />
+            <div className="mt-4 flex gap-4">
+                <button onClick={takePicture} className="px-6 py-3 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600">
+                    Take Picture
                 </button>
-             </div>
-             <div className="flex justify-center">
-                 <button
-                    onClick={handleTakePhoto}
-                    aria-label="Take picture"
-                    className="w-16 h-16 bg-white rounded-full border-4 border-purple-500 hover:bg-purple-200 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black"
-                 />
-             </div>
-          </div>
+                <button onClick={onClose} className="px-6 py-3 bg-gray-600 text-white font-bold rounded-full hover:bg-gray-700">
+                    Cancel
+                </button>
+            </div>
         </>
       )}
     </div>
