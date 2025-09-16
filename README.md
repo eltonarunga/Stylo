@@ -1,6 +1,6 @@
-# Stylo - AI Headshot Generator
+# Stylo
 
-Stylo is a web-based application that uses generative AI to transform your selfies into professional-looking headshots. Upload a photo, choose your desired style, and let our AI do the rest.
+Stylo is a web-based application that uses generative AI (Google's Gemini/Nanobanana) to transform your selfies into professional-looking headshots. Upload a photo, choose your desired style, and let our AI do the rest.
 
 ## Features
 
