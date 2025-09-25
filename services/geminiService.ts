@@ -1,13 +1,5 @@
-import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
-
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 /**
- * Generates a new headshot image based on an original image and a clothing style.
+ * Generates a new headshot image by calling our backend proxy.
  * @param base64Image The base64 encoded image string.
  * @param mimeType The MIME type of the image.
  * @param style The desired clothing style.
@@ -25,64 +17,43 @@ export const generateTransformedImage = async (
   customPrompt: string
 ): Promise<string> => {
   try {
-    let prompt = `A professional headshot of the person in the image, wearing a '${style}'. The background should be: '${background}'. The final image must have a ${aspectRatio} aspect ratio. It is critical to preserve the person's facial features and hair exactly as they are in the original photo.`;
-
-    if (customPrompt) {
-        prompt += ` Additionally, apply the following modifications: ${customPrompt}.`;
-    }
-
-    const imagePart = {
-      inlineData: {
-        data: base64Image,
-        mimeType: mimeType,
-      },
-    };
-
-    const textPart = {
-      text: prompt,
-    };
-
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image-preview',
-      contents: {
-        parts: [imagePart, textPart],
-      },
-      // This config is required for the image editing model to return an image.
-      config: {
-        responseModalities: [Modality.IMAGE, Modality.TEXT],
-      },
+    const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            base64Image,
+            mimeType,
+            style,
+            aspectRatio,
+            background,
+            customPrompt
+        }),
     });
 
-    // Robustly check for a valid response candidate and parts
-    if (!response.candidates?.length || !response.candidates[0].content?.parts?.length) {
-      const blockReason = response.promptFeedback?.blockReason;
-      if (blockReason) {
-        throw new Error(`Request blocked for safety reasons (${blockReason}). Please try a different image or style.`);
-      }
-      throw new Error("The AI could not generate an image from this request. Please try a different photo or style, as the model may have refused the request.");
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || `Server responded with status: ${response.status}`);
+    }
+    
+    if (data.error) {
+        throw new Error(data.error);
     }
 
-    // Find and return the first image part in the response
-    const imageResult = response.candidates[0].content.parts.find(part => part.inlineData);
-
-    if (imageResult?.inlineData) {
-      return imageResult.inlineData.data;
+    if (data.imageBase64) {
+        return data.imageBase64;
     }
 
-    // If there's a response but no image, check for explanatory text.
-    const textResult = response.candidates[0].content.parts.find(part => part.text);
-    if (textResult?.text) {
-        throw new Error(`Image generation failed. The AI responded: "${textResult.text}"`);
-    }
-
-    throw new Error("Image generation failed: No image was returned in the API response.");
+    throw new Error("Proxy did not return a valid image.");
     
   } catch (error) {
-    console.error("Error generating transformed image:", error);
+    console.error("Error calling backend proxy:", error);
     if (error instanceof Error) {
         // Re-throw the original, more specific error
         throw error;
     }
-    throw new Error("An unknown error occurred while communicating with the image generation API.");
+    throw new Error("An unknown error occurred while communicating with the backend.");
   }
 };
