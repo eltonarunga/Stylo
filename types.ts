@@ -14,3 +14,14 @@ export interface BackgroundStyle {
   name: string;
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
 }
+
+export interface OutfitItem {
+  name: string;
+  imageUrl: string;
+}
+
+export interface OutfitPreferences {
+  occasion: string;
+  style: string;
+  colorPalette: string;
+}
