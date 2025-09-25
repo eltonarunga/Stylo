@@ -1,8 +1,6 @@
 # Stylo - AI Headshot Stylizer
 
-<p align="center">
-  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq5LxdaRI_sb3HsOOQzQXSDlCIN44kboMb6c-4NWtmAs8NOKJ4pvcvlDilmDkgCUUpiVZupPYx9z6CrSMv3GfAke4lfrGOyE9CP78SkuBSlVkGd0944dznPPAaKxY6qlFynKXyAq_hgg4X6bkf_-efipNT8anpkdgBWlSZ53HuZXs0xX1xg5BhzU8JigNgpvgZIuIPDF2oCQPgtzRCgPusYSjRbCD5llgTgJvwg6GShFm42MFl0SRacq29cL3q8Pgy_iOI6fGg7aM2" alt="Stylo Logo" width="200">
-</p>
+
 
 <h1 align="center">Reimagine Your Wardrobe with AI</h1>
 
