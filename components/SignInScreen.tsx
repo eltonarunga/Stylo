@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sendPasswordResetEmail } from '../services/authService';
 
 interface SignInScreenProps {
   onSignIn: (email: string, pass: string) => Promise<void>;
@@ -27,11 +28,24 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ onSignIn, onSwitchTo
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [view, setView] = useState<'signIn' | 'forgotPassword'>('signIn');
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetMessage, setResetMessage] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+
+    const handleSignInSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         await onSignIn(email, password);
+        setIsLoading(false);
+    };
+
+    const handlePasswordResetSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setResetMessage(null);
+        const result = await sendPasswordResetEmail(resetEmail);
+        setResetMessage(result.message);
         setIsLoading(false);
     };
 
@@ -44,83 +58,127 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ onSignIn, onSwitchTo
                         <h1 className="font-serif text-3xl font-bold text-[var(--primary-color)]">Stylo</h1>
                     </div>
                 </header>
-                
-                <h2 className="text-2xl font-bold text-center text-[var(--foreground-color)] mb-2">Welcome Back</h2>
-                <p className="text-center text-[var(--secondary-foreground-color)] mb-8">Sign in to continue to your AI stylist.</p>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label htmlFor="email" className="sr-only">Email</label>
-                        <input 
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email address"
-                            required
-                            className="w-full p-3 rounded-lg bg-[var(--card-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none transition-shadow"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="password" className="sr-only">Password</label>
-                        <input
-                            id="password" 
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            required
-                            className="w-full p-3 rounded-lg bg-[var(--card-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none transition-shadow"
-                        />
-                    </div>
+                {view === 'signIn' ? (
+                    <>
+                        <h2 className="text-2xl font-bold text-center text-[var(--foreground-color)] mb-2">Welcome Back</h2>
+                        <p className="text-center text-[var(--secondary-foreground-color)] mb-8">Sign in to continue to your AI stylist.</p>
 
-                    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                        <form onSubmit={handleSignInSubmit} className="space-y-4">
+                            <div>
+                                <label htmlFor="email" className="sr-only">Email</label>
+                                <input 
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Email address"
+                                    required
+                                    className="w-full p-3 rounded-lg bg-[var(--card-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none transition-shadow"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="password" className="sr-only">Password</label>
+                                <input
+                                    id="password" 
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Password"
+                                    required
+                                    className="w-full p-3 rounded-lg bg-[var(--card-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none transition-shadow"
+                                />
+                            </div>
 
-                    <div className="flex items-center justify-end">
-                         <a href="#" className="text-sm font-medium text-[var(--primary-color)] hover:underline">Forgot password?</a>
-                    </div>
-                    
-                    <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center h-12 px-6 bg-[var(--primary-color)] text-white text-lg font-semibold rounded-lg shadow-lg hover:brightness-90 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        {isLoading ? (
-                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+                            <div className="flex items-center justify-end">
+                                <button type="button" onClick={() => setView('forgotPassword')} className="text-sm font-medium text-[var(--primary-color)] hover:underline">Forgot password?</button>
+                            </div>
+                            
+                            <button 
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full flex items-center justify-center h-12 px-6 bg-[var(--primary-color)] text-white text-lg font-semibold rounded-lg shadow-lg hover:brightness-90 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                {isLoading ? (
+                                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                                ) : (
+                                'Sign In'
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-4">
+                            <button
+                                onClick={onGuestSignIn}
+                                className="w-full flex items-center justify-center h-12 px-6 bg-transparent text-[var(--primary-color)] font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                Continue as Guest
+                            </button>
+                        </div>
+                        
+
+                        <div className="my-6 flex items-center">
+                            <div className="flex-grow border-t border-[var(--border-color)]"></div>
+                            <span className="flex-shrink mx-4 text-sm text-[var(--secondary-foreground-color)]">OR</span>
+                            <div className="flex-grow border-t border-[var(--border-color)]"></div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <button className="w-full flex items-center justify-center gap-3 h-12 px-6 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                                <GoogleIcon />
+                                Continue with Google
+                            </button>
+                            <button className="w-full flex items-center justify-center gap-3 h-12 px-6 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                                <AppleIcon />
+                                Continue with Apple
+                            </button>
+                        </div>
+                        
+                        <p className="mt-8 text-center text-sm text-[var(--secondary-foreground-color)]">
+                            Don't have an account? <button onClick={onSwitchToSignUp} className="font-medium text-[var(--primary-color)] hover:underline">Sign up</button>
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h2 className="text-2xl font-bold text-center text-[var(--foreground-color)] mb-2">Reset Password</h2>
+                        <p className="text-center text-[var(--secondary-foreground-color)] mb-8">Enter your email to receive a password reset link.</p>
+
+                        {resetMessage ? (
+                             <div className="p-4 text-center text-green-700 bg-green-100 rounded-lg">
+                                <p>{resetMessage}</p>
+                             </div>
                         ) : (
-                           'Sign In'
+                            <form onSubmit={handlePasswordResetSubmit} className="space-y-4">
+                                <div>
+                                    <label htmlFor="reset-email" className="sr-only">Email</label>
+                                    <input 
+                                        id="reset-email"
+                                        type="email"
+                                        value={resetEmail}
+                                        onChange={(e) => setResetEmail(e.target.value)}
+                                        placeholder="Email address"
+                                        required
+                                        className="w-full p-3 rounded-lg bg-[var(--card-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none transition-shadow"
+                                    />
+                                </div>
+                                <button 
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full flex items-center justify-center h-12 px-6 bg-[var(--primary-color)] text-white text-lg font-semibold rounded-lg shadow-lg hover:brightness-90 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                    {isLoading ? (
+                                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                                    ) : (
+                                    'Send Reset Link'
+                                    )}
+                                </button>
+                            </form>
                         )}
-                    </button>
-                </form>
-
-                <div className="mt-4">
-                    <button
-                        onClick={onGuestSignIn}
-                        className="w-full flex items-center justify-center h-12 px-6 bg-transparent text-[var(--primary-color)] font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                        Continue as Guest
-                    </button>
-                </div>
-                
-
-                <div className="my-6 flex items-center">
-                    <div className="flex-grow border-t border-[var(--border-color)]"></div>
-                    <span className="flex-shrink mx-4 text-sm text-[var(--secondary-foreground-color)]">OR</span>
-                    <div className="flex-grow border-t border-[var(--border-color)]"></div>
-                </div>
-
-                <div className="space-y-3">
-                    <button className="w-full flex items-center justify-center gap-3 h-12 px-6 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                        <GoogleIcon />
-                        Continue with Google
-                    </button>
-                     <button className="w-full flex items-center justify-center gap-3 h-12 px-6 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
-                        <AppleIcon />
-                        Continue with Apple
-                    </button>
-                </div>
-                
-                <p className="mt-8 text-center text-sm text-[var(--secondary-foreground-color)]">
-                    Don't have an account? <button onClick={onSwitchToSignUp} className="font-medium text-[var(--primary-color)] hover:underline">Sign up</button>
-                </p>
+                        
+                        <p className="mt-8 text-center text-sm">
+                           <button onClick={() => { setView('signIn'); setResetMessage(null); }} className="font-medium text-[var(--primary-color)] hover:underline">Back to Sign In</button>
+                        </p>
+                    </>
+                )}
             </div>
         </div>
     );

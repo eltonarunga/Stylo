@@ -47,3 +47,28 @@ export const signUp = async (name: string, email: string, password: string): Pro
         return { success: false, message: 'An unknown error occurred.' };
     }
 }
+
+export const sendPasswordResetEmail = async (email: string): Promise<{success: boolean, message: string}> => {
+    try {
+        const response = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Password reset request failed.');
+        }
+
+        return { success: true, message: data.message };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, message: error.message };
+        }
+        return { success: false, message: 'An unknown error occurred.' };
+    }
+};
