@@ -1,18 +1,37 @@
-
 import React, { useState, useEffect } from 'react';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Wardrobe } from './components/Wardrobe';
 import { GeneratorView } from './components/GeneratorView';
 import { SavedOutfits } from './components/SavedOutfits';
 import { Profile } from './components/Profile';
+import { SignInScreen } from './components/SignInScreen';
+import { SignUpScreen } from './components/SignUpScreen';
+import { signIn, signUp } from './services/authService';
 
 type View = 'welcome' | 'wardrobe' | 'generator' | 'saved' | 'profile';
+type AuthView = 'signIn' | 'signUp';
+type User = { name: string; email: string; isGuest: boolean; };
 
 const App: React.FC = () => {
     const [view, setView] = useState<View>('welcome');
+    const [authView, setAuthView] = useState<AuthView>('signIn');
+    const [user, setUser] = useState<User | null>(null);
+    const [authError, setAuthError] = useState<string | null>(null);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
+        const token = localStorage.getItem('stylo-auth-token');
+        const sessionType = localStorage.getItem('stylo-session-type');
+
+        if (token && sessionType === 'user') {
+            // In a real app, you'd verify the token and fetch user details
+            setUser({ name: 'Alex Doe', email: 'user@stylo.com', isGuest: false });
+            setView('generator'); 
+        } else if (sessionType === 'guest') {
+            setUser({ name: 'Guest User', email: 'Explore the app', isGuest: true });
+            setView('generator');
+        }
+
         const storedTheme = localStorage.getItem('theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -33,6 +52,47 @@ const App: React.FC = () => {
         }
     }, [theme]);
 
+    const handleSignIn = async (email: string, pass: string) => {
+        setAuthError(null);
+        const result = await signIn(email, pass);
+        if (result.success) {
+            localStorage.setItem('stylo-auth-token', 'mock-jwt-token');
+            localStorage.setItem('stylo-session-type', 'user');
+            setUser({ name: 'Alex Doe', email, isGuest: false });
+            setView('welcome');
+        } else {
+            setAuthError(result.message);
+        }
+    };
+
+    const handleSignUp = async (name: string, email: string, pass: string) => {
+        setAuthError(null);
+        const result = await signUp(name, email, pass);
+        if (result.success) {
+            localStorage.setItem('stylo-auth-token', 'mock-jwt-token');
+            localStorage.setItem('stylo-session-type', 'user');
+            setUser({ name, email, isGuest: false });
+            setView('welcome');
+        } else {
+            setAuthError(result.message);
+        }
+    };
+
+    const handleGuestSignIn = () => {
+        setAuthError(null);
+        localStorage.setItem('stylo-session-type', 'guest');
+        setUser({ name: 'Guest User', email: 'Explore the app', isGuest: true });
+        setView('generator');
+    };
+    
+    const handleSignOut = () => {
+        localStorage.removeItem('stylo-auth-token');
+        localStorage.removeItem('stylo-session-type');
+        setUser(null);
+        setAuthError(null);
+        setAuthView('signIn');
+    };
+
     const handleGetStarted = () => {
         setView('generator');
     };
@@ -46,13 +106,20 @@ const App: React.FC = () => {
             case 'saved':
                 return <SavedOutfits />;
             case 'profile':
-                return <Profile />;
+                return user ? <Profile user={user} onSignOut={handleSignOut} /> : null;
             default:
-                return <WelcomeScreen onGetStarted={handleGetStarted} />;
+                return <GeneratorView />;
         }
     };
 
-    if (view === 'welcome') {
+    if (!user) {
+        if (authView === 'signUp') {
+            return <SignUpScreen onSignUp={handleSignUp} onSwitchToSignIn={() => setAuthView('signIn')} error={authError} />;
+        }
+        return <SignInScreen onSignIn={handleSignIn} onSwitchToSignUp={() => setAuthView('signUp')} onGuestSignIn={handleGuestSignIn} error={authError} />;
+    }
+
+    if (view === 'welcome' && !user.isGuest) {
         return <WelcomeScreen onGetStarted={handleGetStarted} />;
     }
 

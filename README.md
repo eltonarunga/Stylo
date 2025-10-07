@@ -12,7 +12,8 @@ Stylo is a modern web application that leverages the power of Google's Gemini AI
 
 ## ✨ Features
 
--   **AI-Powered Headshot Generation**: Utilizes the `gemini-2.5-flash-image-preview` model to intelligently edit your photo.
+-   **User Authentication**: A mock sign-in flow to demonstrate a complete app structure.
+-   **AI-Powered Headshot Generation**: Utilizes the `gemini-2.5-flash-image` model to intelligently edit your photo.
 -   **Multiple Clothing Styles**: Choose from a curated list of professional and casual clothing options.
 -   **Customizable Backgrounds**: Select from studio backdrops, office environments, cityscapes, and more.
 -   **Selectable Aspect Ratios**: Generate images in square (1:1), portrait (3:4), or story (9:16) formats.
@@ -24,47 +25,39 @@ Stylo is a modern web application that leverages the power of Google's Gemini AI
 ## 🛠️ Tech Stack
 
 -   **Frontend**: React & TypeScript
--   **Backend**: Serverless Function (Proxy)
--   **AI Model**: Google Gemini (`gemini-2.5-flash-image-preview`)
+-   **Backend**: Node.js Serverless Functions
+-   **AI Model**: Google Gemini (`gemini-2.5-flash`, `gemini-2.5-flash-image`)
 -   **AI SDK**: `@google/genai`
 -   **Styling**: Tailwind CSS
 -   **Module Loading**: ES Modules with Import Maps
+-   **Deployment**: Optimized for Vercel
 
-## 🚀 Getting Started
+## 🚀 Deployment on Vercel
 
-### Prerequisites
+This project is optimized for a seamless deployment on [Vercel](https://vercel.com).
 
--   A modern web browser (e.g., Chrome, Firefox, Safari).
--   A local development server that can run the frontend and the serverless function proxy (e.g., Vercel CLI, Netlify CLI).
--   A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/app/apikey).
+1.  **Fork this repository** to your GitHub account.
+2.  **Create a new project** on your Vercel dashboard and import the forked repository.
+3.  **Configure Environment Variables**:
+    -   In the project settings on Vercel, navigate to "Environment Variables".
+    -   Add a new variable named `API_KEY`.
+    -   Paste your Google Gemini API key as the value.
+    -   Ensure the variable is available to all environments (Production, Preview, Development).
+4.  **Deploy**: Vercel will automatically detect the project structure and deploy it. The serverless functions in the `/api` directory will be built and deployed as well.
 
-### Installation & Configuration
+Your application will be live at the domain provided by Vercel. For local development, use the Vercel CLI (`vercel dev`).
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/stylo.git
-    cd stylo
-    ```
+## 🔒 Security Considerations
 
-2.  **Configure API Key:**
+Security is a top priority for this application. Here are the key measures and considerations:
 
-    This application uses a backend proxy (`/api/generate`) to protect your API key. You need to make your key available as an environment variable to this server-side function.
-
-    -   Create a file named `.env.local` (or equivalent for your platform) in the root of your project.
-    -   Add your API key to this file:
-        ```
-        API_KEY="YOUR_API_KEY_HERE"
-        ```
-    -   Ensure that your deployment platform is configured to use this environment variable.
-
-3.  **Run the application:**
-    -   Start your local development server from the root of the project directory (e.g., `vercel dev`).
-    -   The server will serve the frontend and make the `/api/generate` endpoint available.
-    -   The application will open in your default browser.
-
-## 🔒 Security
-
-The Gemini API key is handled securely on the server-side by a proxy endpoint located in `api/generate.ts`. This endpoint receives requests from the frontend, adds the secret API key from its environment variables, and forwards the request to the Gemini API. This architecture ensures the API key is **never exposed in the browser**.
+-   **API Key Protection**: The Gemini API key is stored as a server-side environment variable and is **never exposed to the client's browser**. All API calls to Gemini are routed through secure serverless functions (`/api/generate`, `/api/generate-outfit`).
+-   **Server-Side Input Validation**: All incoming requests to the API endpoints are strictly validated to prevent malformed data from being processed. This includes checks on data types, formats (e.g., for image data), and length to mitigate risks of injection or abuse.
+-   **Mock Authentication**: The sign-in flow (`/api/auth`) is a **demonstration mock and is not secure for production use**. A production-ready implementation would require:
+    -   Password hashing and salting (e.g., using `bcrypt`).
+    -   Secure user storage in a database.
+    -   Generation of signed, expiring JSON Web Tokens (JWTs).
+-   **Rate Limiting**: For a production deployment, it is highly recommended to implement rate limiting on the API endpoints to prevent abuse and control costs. This can be done using Vercel's platform features or with services like Upstash.
 
 ## 🤝 Contributing
 

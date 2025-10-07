@@ -7,8 +7,13 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_ASPECT_RATIOS = ['1:1', '3:4', '9:16'];
+const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
 /**
  * A serverless function that acts as a secure proxy to the Google Gemini API.
+ * Optimized for Vercel deployment with enhanced security.
  * @param req The incoming request object.
  * @returns A response object with the generated image or an error.
  */
@@ -22,11 +27,27 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        const { base64Image, mimeType, style, aspectRatio, background, customPrompt } = await req.json();
+        const body = await req.json();
+
+        // --- Enhanced Input Validation ---
+        const { base64Image, mimeType, style, aspectRatio, background, customPrompt } = body;
 
         if (!base64Image || !mimeType || !style || !aspectRatio || !background) {
-             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+             return new Response(JSON.stringify({ error: 'Missing required parameters.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
         }
+        if (typeof base64Image !== 'string' || !base64Regex.test(base64Image)) {
+            return new Response(JSON.stringify({ error: 'Invalid image data format.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+            return new Response(JSON.stringify({ error: 'Unsupported image type.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (!ALLOWED_ASPECT_RATIOS.includes(aspectRatio)) {
+            return new Response(JSON.stringify({ error: 'Invalid aspect ratio.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (style.length > 100 || background.length > 100 || (customPrompt && customPrompt.length > 500)) {
+            return new Response(JSON.stringify({ error: 'Input text is too long.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        }
+        // --- End Validation ---
         
         let prompt = `A professional headshot of the person in the image, wearing a '${style}'. The background should be: '${background}'. The final image must have a ${aspectRatio} aspect ratio. It is critical to preserve the person's facial features and hair exactly as they are in the original photo.`;
 
@@ -46,7 +67,7 @@ export default async function handler(req: Request): Promise<Response> {
         };
 
         const response: GenerateContentResponse = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image-preview',
+          model: 'gemini-2.5-flash-image',
           contents: {
             parts: [imagePart, textPart],
           },
@@ -78,7 +99,7 @@ export default async function handler(req: Request): Promise<Response> {
 
     } catch (error) {
         console.error("Error in backend proxy:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unknown server error occurred.";
-        return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        // Return a generic error to the client to avoid leaking implementation details
+        return new Response(JSON.stringify({ error: "An unexpected server error occurred. Please try again later." }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }

@@ -17,6 +17,9 @@ import { OfficeIcon } from './components/icons/backgrounds/OfficeIcon';
 import { CityscapeIcon } from './components/icons/backgrounds/CityscapeIcon';
 import { GradientIcon } from './components/icons/backgrounds/GradientIcon';
 import { WallIcon } from './components/icons/backgrounds/WallIcon';
+import { TshirtIcon } from './components/icons/styles/TshirtIcon';
+import { GownIcon } from './components/icons/styles/GownIcon';
+import { AthleticIcon } from './components/icons/styles/AthleticIcon';
 
 export const CLOTHING_STYLES: ClothingStyle[] = [
   { name: 'Purple Sweater', icon: SweaterIcon },
@@ -31,6 +34,9 @@ export const CLOTHING_STYLES: ClothingStyle[] = [
   { name: 'Tweed Jacket', icon: TweedIcon },
   { name: 'Surgical Scrubs', icon: ScrubsIcon },
   { name: 'Pilot Uniform', icon: PilotIcon },
+  { name: 'Casual T-Shirt', icon: TshirtIcon },
+  { name: 'Evening Gown', icon: GownIcon },
+  { name: 'Athletic Wear', icon: AthleticIcon },
 ];
 
 export const ASPECT_RATIOS: AspectRatio[] = [
