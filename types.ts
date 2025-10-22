@@ -25,3 +25,8 @@ export interface OutfitPreferences {
   style: string;
   colorPalette: string;
 }
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}

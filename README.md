@@ -6,18 +6,21 @@
 
 <h1 align="center">Reimagine Your Wardrobe with AI</h1>
 
-Stylo is a modern web application that leverages the power of Google's Gemini AI to transform your selfies into professional headshots. Upload a photo, choose from a variety of clothing and background styles, and let AI generate a new, polished image for you in seconds.
+Stylo is a modern web application that leverages the power of Google's Gemini AI to transform your selfies into professional headshots, generate new images from text, create videos, analyze photos, and offer fashion advice.
 
 ---
 
 ## ✨ Features
 
 -   **User Authentication**: A mock sign-in flow to demonstrate a complete app structure.
--   **AI-Powered Headshot Generation**: Utilizes the `gemini-2.5-flash-image` model to intelligently edit your photo.
--   **Multiple Clothing Styles**: Choose from a curated list of professional and casual clothing options.
--   **Customizable Backgrounds**: Select from studio backdrops, office environments, cityscapes, and more.
--   **Selectable Aspect Ratios**: Generate images in square (1:1), portrait (3:4), or story (9:16) formats.
--   **Custom Text Prompts**: Add specific instructions (e.g., "add glasses," "change hair to blond") for fine-tuned results.
+-   **AI Toolkit**: A suite of powerful generative AI tools:
+    -   **AI Headshot Stylizer**: The original feature to intelligently edit your photo with new clothes and backgrounds.
+    -   **AI Outfit Generator**: Get expert fashion advice on how to style your clothing items, now powered by the advanced reasoning of Gemini 2.5 Pro.
+    -   **AI Image Editor**: Use text prompts to make creative edits to any photo (e.g., "add a retro filter").
+    -   **AI Image Creator**: Generate high-quality, original images from text descriptions using Imagen 4.
+    -   **AI Video Animator**: Turn a still photo into a dynamic video with a text prompt using Veo.
+    -   **AI Image Analyzer**: Upload a photo to receive a detailed textual description and analysis.
+-   **AI Chatbot**: A globally accessible chatbot for quick questions and conversations, powered by Gemini 2.5 Flash.
 -   **Live Camera & Image Upload**: Take a new photo with your device's camera or upload an existing one.
 -   **Responsive Design**: A mobile-first interface that works beautifully on all screen sizes.
 -   **Light & Dark Mode**: An accessible UI that respects your system preferences or can be toggled manually.
@@ -25,8 +28,8 @@ Stylo is a modern web application that leverages the power of Google's Gemini AI
 ## 🛠️ Tech Stack
 
 -   **Frontend**: React & TypeScript
--   **Backend**: Node.js Serverless Functions
--   **AI Model**: Google Gemini (`gemini-2.5-flash`, `gemini-2.5-flash-image`)
+-   **Backend**: Node.js Serverless Functions (for most APIs)
+-   **AI Models**: Google Gemini (`gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.5-flash-image`, `imagen-4.0-generate-001`, `veo-3.1-fast-generate-preview`)
 -   **AI SDK**: `@google/genai`
 -   **Styling**: Tailwind CSS
 -   **Module Loading**: ES Modules with Import Maps
@@ -51,13 +54,11 @@ Your application will be live at the domain provided by Vercel. For local develo
 
 Security is a top priority for this application. Here are the key measures and considerations:
 
--   **API Key Protection**: The Gemini API key is stored as a server-side environment variable and is **never exposed to the client's browser**. All API calls to Gemini are routed through secure serverless functions (`/api/generate`, `/api/generate-outfit`).
--   **Server-Side Input Validation**: All incoming requests to the API endpoints are strictly validated to prevent malformed data from being processed. This includes checks on data types, formats (e.g., for image data), and length to mitigate risks of injection or abuse.
--   **Mock Authentication**: The sign-in flow (`/api/auth`) is a **demonstration mock and is not secure for production use**. A production-ready implementation would require:
-    -   Password hashing and salting (e.g., using `bcrypt`).
-    -   Secure user storage in a database.
-    -   Generation of signed, expiring JSON Web Tokens (JWTs).
--   **Rate Limiting**: For a production deployment, it is highly recommended to implement rate limiting on the API endpoints to prevent abuse and control costs. This can be done using Vercel's platform features or with services like Upstash.
+-   **API Key Protection**: For most features, the Gemini API key is stored as a server-side environment variable and is **never exposed to the client's browser**. All API calls to Gemini are routed through secure serverless functions.
+-   **Veo API Key**: The video generation feature requires the user to select their own API key via a special dialog provided by the environment. This key is then used for client-side API calls to handle the long-running video generation process.
+-   **Server-Side Input Validation**: All incoming requests to the API endpoints are strictly validated to prevent malformed data from being processed.
+-   **Mock Authentication**: The sign-in flow is a **demonstration mock and is not secure for production use**. A production-ready implementation would require password hashing, secure user storage, and JWTs.
+-   **Rate Limiting**: For a production deployment, it is highly recommended to implement rate limiting on the API endpoints to prevent abuse and control costs.
 
 ## 🤝 Contributing
 

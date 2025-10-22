@@ -7,6 +7,7 @@ import { Profile } from './components/Profile';
 import { SignInScreen } from './components/SignInScreen';
 import { SignUpScreen } from './components/SignUpScreen';
 import { signIn, signUp } from './services/authService';
+import { ChatBot } from './components/ChatBot';
 
 type View = 'welcome' | 'wardrobe' | 'generator' | 'saved' | 'profile';
 type AuthView = 'signIn' | 'signUp';
@@ -128,6 +129,7 @@ const App: React.FC = () => {
             <div className="flex-grow overflow-y-auto">
                 {renderView()}
             </div>
+             <ChatBot />
             <nav className="sticky bottom-0 z-10 bg-[var(--background-color)]/80 backdrop-blur-sm border-t border-[var(--border-color)]">
                 <div className="flex justify-around items-center h-16">
                     <button onClick={() => setView('wardrobe')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'wardrobe' ? 'text-[var(--primary-color)]' : 'text-[var(--secondary-foreground-color)]'}`}>

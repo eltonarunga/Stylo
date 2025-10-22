@@ -42,8 +42,13 @@ export default async function handler(req: Request): Promise<Response> {
         const prompt = `Act as a fashion stylist. Based on the following clothing items I already own (${itemNames}), and my preferences (Occasion: ${preferences.occasion}, Style: ${preferences.style}, Color Palette: ${preferences.colorPalette}), suggest a complete outfit for me. Describe the full outfit, suggest other items to pair with what I have, and explain why your suggestion works. Keep the response concise and well-formatted, using markdown for structure (like headings and bullet points).`;
         
         const response: GenerateContentResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-pro',
             contents: prompt,
+            config: {
+                thinkingConfig: {
+                    thinkingBudget: 32768,
+                }
+            }
         });
 
         const suggestion = response.text;

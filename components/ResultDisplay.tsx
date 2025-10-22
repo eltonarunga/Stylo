@@ -1,21 +1,28 @@
-
 import React from 'react';
 import { PortraitIcon } from './icons/PortraitIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 
 interface ResultDisplayProps {
-  generatedImage: string | null;
+  generatedContentUrl: string | null;
+  contentType: 'image' | 'video';
   error: string | null;
   isLoading: boolean;
+  placeholderText: string;
 }
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, error, isLoading }) => {
-
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({
+  generatedContentUrl,
+  contentType,
+  error,
+  isLoading,
+  placeholderText,
+}) => {
   const handleDownload = () => {
-    if (generatedImage) {
+    if (generatedContentUrl) {
       const link = document.createElement('a');
-      link.href = generatedImage;
-      link.download = `stylo-headshot-${Date.now()}.jpg`;
+      link.href = generatedContentUrl;
+      const extension = contentType === 'image' ? 'jpg' : 'mp4';
+      link.download = `stylo-creation-${Date.now()}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -24,28 +31,31 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, er
 
   return (
     <div className="w-full flex flex-col gap-4 items-center">
-      <h2 className="text-lg font-semibold text-center text-[var(--foreground-color)]">Your New Headshot</h2>
+      <h2 className="text-lg font-semibold text-center text-[var(--foreground-color)]">Your New Creation</h2>
       <div className="relative w-full aspect-square bg-[var(--card-background-color)] rounded-xl border-2 border-dashed border-[var(--border-color)] flex items-center justify-center overflow-hidden">
-        {!generatedImage && !error && !isLoading && (
-           <div className="text-center text-[var(--secondary-foreground-color)] p-4">
+        {!generatedContentUrl && !error && !isLoading && (
+          <div className="text-center text-[var(--secondary-foreground-color)] p-4">
             <PortraitIcon />
-            <p>Your new headshot will appear here after you click "Stylize Me".</p>
+            <p>{placeholderText}</p>
           </div>
         )}
-        
-        {generatedImage && (
-          <img src={generatedImage} alt="Generated Headshot" className="w-full h-full object-cover" />
+
+        {generatedContentUrl && contentType === 'image' && (
+          <img src={generatedContentUrl} alt="Generated Content" className="w-full h-full object-cover" />
+        )}
+
+        {generatedContentUrl && contentType === 'video' && (
+          <video src={generatedContentUrl} controls autoPlay loop muted className="w-full h-full object-cover" />
         )}
 
         {error && (
-            <div className="p-4 text-center text-red-500">
-                <p className="font-semibold">Oh no! Something went wrong.</p>
-                <p className="text-sm mt-2">{error}</p>
-            </div>
+          <div className="p-4 text-center text-red-500">
+            <p className="font-semibold">Oh no! Something went wrong.</p>
+            <p className="text-sm mt-2">{error}</p>
+          </div>
         )}
-
       </div>
-      {generatedImage && (
+      {generatedContentUrl && (
         <button
           onClick={handleDownload}
           className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white font-bold rounded-lg text-md hover:bg-green-600 transition-colors duration-300 transform hover:scale-105 active:scale-100"

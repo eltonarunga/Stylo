@@ -1,4 +1,3 @@
-
 import type { ClothingStyle, AspectRatio, BackgroundStyle } from './types';
 import { SweaterIcon } from './components/icons/styles/SweaterIcon';
 import { SuitIcon } from './components/icons/styles/SuitIcon';
@@ -41,9 +40,15 @@ export const CLOTHING_STYLES: ClothingStyle[] = [
 
 export const ASPECT_RATIOS: AspectRatio[] = [
   { name: 'Square (1:1)', value: '1:1' },
-  // FIX: Changed aspect ratio from 4:5 to 3:4 for better compatibility.
   { name: 'Portrait (3:4)', value: '3:4' },
+  { name: 'Photo (4:3)', value: '4:3' },
   { name: 'Story (9:16)', value: '9:16' },
+  { name: 'Landscape (16:9)', value: '16:9' },
+];
+
+export const VIDEO_ASPECT_RATIOS: AspectRatio[] = [
+  { name: 'Landscape (16:9)', value: '16:9' },
+  { name: 'Portrait (9:16)', value: '9:16' },
 ];
 
 export const BACKGROUND_STYLES: BackgroundStyle[] = [
